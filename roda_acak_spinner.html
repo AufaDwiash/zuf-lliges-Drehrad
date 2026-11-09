@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Roda Acak — Spinner Nama</title>
+<style>
+:root{--bg:#10151b;--panel:#1b222b;--panel2:#242d38;--text:#f3f6fb;--muted:#a9b4c3;--accent:#7c8cff;--line:#364150;--green:#64d9a4}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 25% 0%,#243b42 0,#10151b 42%,#0b0e12 100%);color:var(--text);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+header{height:68px;padding:0 24px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #ffffff14;background:#14191fdd;position:sticky;top:0;z-index:2;backdrop-filter:blur(12px)}
+.logo{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#7c8cff,#62d9b0);font-size:22px}
+header h1{font-size:19px;margin:0;font-weight:750;letter-spacing:-.4px}
+header .sub{color:var(--muted);font-size:12px;margin-left:auto}
+main{max-width:1280px;margin:0 auto;padding:26px;display:grid;grid-template-columns:minmax(320px,1fr) minmax(320px,390px);gap:26px;align-items:start}
+.stage{min-height:650px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;padding:18px 10px 28px}
+.wheel-wrap{position:relative;width:min( min(68vw,650px), calc(100vw - 48px));aspect-ratio:1;max-width:650px;filter:drop-shadow(0 22px 32px #0008)}
+canvas{width:100%;height:100%;display:block;border-radius:50%}
+.pointer{position:absolute;z-index:1;right:-13px;top:50%;transform:translateY(-50%);width:0;height:0;border-top:23px solid transparent;border-bottom:23px solid transparent;border-right:0;border-left:38px solid #75edb6;filter:drop-shadow(0 3px 3px #0008)}
+.hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:15%;aspect-ratio:1;border-radius:50%;background:linear-gradient(145deg,#fff,#dfe7f2);border:7px solid #ffffff90;box-shadow:0 4px 16px #0004;pointer-events:none}
+.spin{margin-top:27px;border:0;border-radius:14px;padding:15px 34px;background:linear-gradient(135deg,#8a96ff,#6878f4);color:#fff;font-size:16px;font-weight:800;box-shadow:0 8px 22px #6d7cff38;cursor:pointer;transition:transform .15s,filter .15s}
+.spin:hover{filter:brightness(1.08);transform:translateY(-1px)}.spin:disabled{opacity:.5;cursor:wait;transform:none}
+.result{margin-top:17px;text-align:center;min-height:56px}
+.result .small{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:1.3px}
+.result strong{display:block;font-size:27px;letter-spacing:-.6px;margin-top:2px}
+.panel{background:linear-gradient(160deg,#202832f5,#171d25f5);border:1px solid #ffffff16;border-radius:18px;overflow:hidden;box-shadow:0 16px 40px #0003}
+.panel-head{padding:19px 20px 15px;border-bottom:1px solid var(--line)}
+.panel-head h2{font-size:17px;margin:0 0 4px}.panel-head p{margin:0;color:var(--muted);font-size:12px}
+.panel-body{padding:18px 20px 20px}
+label{font-size:13px;font-weight:700;display:block;margin-bottom:8px}
+textarea{width:100%;min-height:132px;resize:vertical;background:#10151b;border:1px solid #455263;border-radius:10px;padding:12px;color:var(--text);font:14px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;outline:none}
+textarea:focus,input:focus{border-color:#8a96ff;box-shadow:0 0 0 3px #8a96ff22}
+.help{font-size:12px;color:var(--muted);margin:7px 0 15px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:17px 0 10px}
+.row h3{font-size:14px;margin:0}.badge{font-size:11px;color:#c8d0ff;background:#7c8cff22;border:1px solid #7c8cff44;padding:4px 8px;border-radius:20px}
+.weights{display:flex;flex-direction:column;gap:8px;max-height:290px;overflow:auto;padding-right:3px}
+.weight-row{display:grid;grid-template-columns:minmax(0,1fr) 92px 42px;gap:9px;align-items:center;background:#ffffff06;border:1px solid #ffffff0c;border-radius:10px;padding:9px 10px}
+.name-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.weight-row input{width:100%;background:#11171e;color:var(--text);border:1px solid #3a4654;border-radius:7px;padding:8px 7px;font-size:13px;text-align:right;outline:none}
+.pct{font-size:12px;color:var(--muted)}
+.chance-total{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);padding:10px 2px 0}
+.chance-total strong{color:var(--green);font-size:13px}
+.actions{display:flex;gap:9px;margin-top:16px}
+button.secondary{flex:1;border:1px solid #435064;border-radius:10px;padding:10px;background:#ffffff08;color:var(--text);font-weight:650;cursor:pointer}
+button.secondary:hover{background:#ffffff12}
+.note{margin-top:14px;border-radius:10px;background:#0d1218;padding:11px 12px;color:var(--muted);font-size:12px}
+.note b{color:#e6ebf4}
+.history{border-top:1px solid var(--line);padding:14px 20px 17px}
+.history h3{margin:0 0 10px;font-size:13px}
+.history-list{display:flex;flex-wrap:wrap;gap:6px}
+.history-item{font-size:12px;color:#d6deeb;background:#ffffff0b;border:1px solid #ffffff12;border-radius:7px;padding:5px 8px}
+.empty{color:var(--muted);font-size:12px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#eafcf4;color:#10251c;border-radius:10px;padding:10px 15px;font-weight:700;box-shadow:0 8px 30px #0005;transition:.2s;z-index:5}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:850px){main{grid-template-columns:1fr;padding:14px;gap:14px}.stage{min-height:auto;padding:20px 4px}.wheel-wrap{width:min(84vw,540px)}header{padding:0 15px}.stage .spin{margin-top:20px}.panel{max-width:650px;width:100%;margin:0 auto}}
+@media(max-width:430px){.wheel-wrap{width:calc(100vw - 54px)}.panel-body{padding:15px}.weight-row{grid-template-columns:minmax(0,1fr) 78px 32px}.stage{padding-top:10px}header .sub{display:none}}
+</style>
+</head>
+<body>
+<header><div class="logo">✦</div><h1>Roda Acak</h1><div class="sub">Spinner nama · peluang bisa diatur</div></header>
+<main>
+<section class="stage" aria-label="Roda pengundi">
+  <div class="wheel-wrap"><canvas id="wheel" width="900" height="900" aria-label="Roda nama"></canvas><div class="pointer"></div><div class="hub"></div></div>
+  <button id="spinBtn" class="spin">⤨  PUTAR RODA</button>
+  <div class="result" aria-live="polite"><div class="small" id="resultLabel">Hasil pilihan</div><strong id="resultName">Siap diundi?</strong></div>
+</section>
+<aside class="panel">
+  <div class="panel-head"><h2>Atur entri & peluang</h2><p>Satu nama per baris. Ubah bobot untuk mengatur peluang terpilih.</p></div>
+  <div class="panel-body">
+    <label for="names">Daftar nama / entri</label>
+    <textarea id="names" spellcheck="false">Fafa
+Jarwo
+Dina
+Budi
+Salsa
+Raka
+Nadia
+Adit</textarea>
+    <div class="help">Tambahkan, hapus, atau edit nama. Nama yang sama akan dianggap sebagai entri terpisah.</div>
+    <div class="row"><h3>Peluang setiap nama</h3><span class="badge">Bobot relatif</span></div>
+    <div id="weights" class="weights"></div>
+    <div class="chance-total"><span>Total bobot: <b id="totalWeight">8</b></span><strong id="chanceStatus">Peluang dinormalisasi</strong></div>
+    <div class="note"><b>Bagaimana peluang bekerja?</b><br>Angka adalah bobot, bukan persentase wajib berjumlah 100. Contoh: Fafa = 3 dan Jarwo = 1 berarti peluang Fafa 75% dan Jarwo 25% jika hanya ada dua entri.</div>
+    <div class="actions"><button class="secondary" id="equalBtn">Samakan peluang</button><button class="secondary" id="sampleBtn">Contoh data</button></div>
+  </div>
+  <div class="history"><h3>Riwayat hasil</h3><div class="history-list" id="history"><span class="empty">Belum ada hasil.</span></div></div>
+</aside>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+(() => {
+ const canvas=document.getElementById('wheel'),ctx=canvas.getContext('2d');
+ const namesEl=document.getElementById('names'),weightsEl=document.getElementById('weights');
+ const spinBtn=document.getElementById('spinBtn'),resultName=document.getElementById('resultName'),resultLabel=document.getElementById('resultLabel');
+ const palette=['#78c7f2','#78e0b0','#f6c76b','#f49aa7','#a99af8','#75d8d4','#f5a86e','#9cc78b','#8fa8ff','#edb5e5'];
+ let entries=[],rotation=0,spinning=false,history=[];
+ const norm=s=>s.trim();
+ function readNames(){return namesEl.value.split(/\r?\n/).map(norm).filter(Boolean)}
+ function syncEntries(){
+   const old=new Map(entries.map(e=>[e.name+'#'+e.occ,e.weight]));
+   const occ={}; const names=readNames();
+   entries=names.map(name=>{occ[name]=(occ[name]||0)+1;return {name,occ:occ[name],weight:old.get(name+'#'+occ[name])??1}});
+   renderWeights();drawWheel();
+ }
+ function renderWeights(){
+   weightsEl.innerHTML='';
+   if(!entries.length){weightsEl.innerHTML='<div class="empty">Masukkan minimal satu nama.</div>';document.getElementById('totalWeight').textContent='0';return}
+   entries.forEach((e,i)=>{
+     const row=document.createElement('div');row.className='weight-row';
+     const nm=document.createElement('div');nm.className='name-label';nm.title=e.name;nm.textContent=e.name;
+     const input=document.createElement('input');input.type='number';input.min='0';input.step='0.1';input.value=e.weight;input.setAttribute('aria-label','Bobot '+e.name);
+     input.addEventListener('input',()=>{let v=Number(input.value);entries[i].weight=Number.isFinite(v)&&v>0?v:0;drawWheel();updateTotals()});
+     const pct=document.createElement('div');pct.className='pct';pct.id='pct-'+i;
+     row.append(nm,input,pct);weightsEl.append(row);
+   });updateTotals();
+ }
+ function updateTotals(){
+   const total=entries.reduce((s,e)=>s+Math.max(0,e.weight),0);
+   document.getElementById('totalWeight').textContent=total.toLocaleString('id-ID',{maximumFractionDigits:2});
+   entries.forEach((e,i)=>{const p=document.getElementById('pct-'+i);if(p)p.textContent=(total>0?Math.max(0,e.weight)/total*100:0).toFixed(1)+'%'});
+   document.getElementById('chanceStatus').textContent=total>0?'Peluang dinormalisasi':'Atur bobot > 0';
+ }
+ function drawWheel(){
+   const w=canvas.width,h=canvas.height,cx=w/2,cy=h/2,r=w/2-12;
+   ctx.clearRect(0,0,w,h);
+   if(!entries.length){ctx.fillStyle='#2b3440';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 32px system-ui';ctx.textAlign='center';ctx.fillText('Tambahkan nama',cx,cy);return}
+   let total=entries.reduce((s,e)=>s+Math.max(0,e.weight),0);
+   if(total<=0)total=entries.length;
+   let a=-Math.PI/2;
+   entries.forEach((e,i)=>{
+     const weight=entries.reduce((s,x)=>s+Math.max(0,x.weight),0)>0?Math.max(0,e.weight):1;
+     const span=total===entries.length&&entries.every(x=>x.weight<=0)?Math.PI*2/entries.length:(total>0?Math.PI*2*weight/total:0);
+     const start=a+rotation,end=start+span;
+     ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,end);ctx.closePath();
+     ctx.fillStyle=palette[i%palette.length];ctx.fill();ctx.strokeStyle='#ffffff99';ctx.lineWidth=3;ctx.stroke();
+     if(span>0.025){
+       ctx.save();ctx.translate(cx,cy);ctx.rotate(start+span/2);
+       ctx.textAlign='right';ctx.textBaseline='middle';
+       const fs=Math.max(15,Math.min(30,Math.floor(350/Math.max(entries.length,8))));
+       ctx.font=`600 ${fs}px system-ui`;ctx.fillStyle='#10151b';
+       let label=e.name;const maxLen=Math.max(7,Math.floor(24*span/(Math.PI/4)));if(label.length>maxLen)label=label.slice(0,maxLen-1)+'…';
+       ctx.fillText(label,r-28,0);ctx.restore();
+     }
+     a+=span;
+   });
+   ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='#ffffff70';ctx.lineWidth=7;ctx.stroke();
+   updateTotals();
+ }
+ function pickWeighted(){
+   let total=entries.reduce((s,e)=>s+Math.max(0,e.weight),0);
+   if(total<=0)return Math.floor(Math.random()*entries.length);
+   let n=Math.random()*total;
+   for(let i=0;i<entries.length;i++){n-=Math.max(0,entries[i].weight);if(n<0)return i}
+   return entries.length-1;
+ }
+ function spin(){
+   if(spinning)return;
+   if(!entries.length){notify('Masukkan minimal satu nama dulu.');return}
+   if(entries.some(e=>e.weight<0)||entries.reduce((s,e)=>s+e.weight,0)<=0){notify('Minimal satu bobot harus lebih dari 0.');return}
+   const index=pickWeighted(),total=entries.reduce((s,e)=>s+e.weight,0);
+   let before=0;for(let i=0;i<index;i++)before+=entries[i].weight/total*Math.PI*2;
+   const span=entries[index].weight/total*Math.PI*2;
+   const target=-Math.PI/2-(before+span/2);
+   const current=((rotation%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+   const desired=((target%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+   const extra=(desired-current+Math.PI*2)%(Math.PI*2)+Math.PI*2*(5+Math.floor(Math.random()*3));
+   const from=rotation,to=rotation+extra,duration=4600+Math.random()*700,start=performance.now();
+   spinning=true;spinBtn.disabled=true;spinBtn.textContent='⟳  SEDANG BERPUTAR…';resultLabel.textContent='Roda sedang berputar';
+   function frame(now){let t=Math.min(1,(now-start)/duration);let ease=1-Math.pow(1-t,5);rotation=from+(to-from)*ease;drawWheel();if(t<1)requestAnimationFrame(frame);else{
+     rotation=to;drawWheel();spinning=false;spinBtn.disabled=false;spinBtn.textContent='⤨  PUTAR LAGI';
+     resultName.textContent=entries[index].name;resultLabel.textContent='Pemenang terpilih';
+     history.unshift(entries[index].name);history=history.slice(0,8);renderHistory();notify('Terpilih: '+entries[index].name);
+   }}
+   requestAnimationFrame(frame);
+ }
+ function renderHistory(){const el=document.getElementById('history');el.innerHTML='';if(!history.length){el.innerHTML='<span class="empty">Belum ada hasil.</span>';return}history.forEach((name,i)=>{const s=document.createElement('span');s.className='history-item';s.textContent=(history.length-i)+'. '+name;el.append(s)})}
+ let toastTimer;function notify(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200)}
+ let debounce;namesEl.addEventListener('input',()=>{clearTimeout(debounce);debounce=setTimeout(()=>{syncEntries();resultName.textContent='Siap diundi?';resultLabel.textContent='Hasil pilihan'},100)});
+ document.getElementById('equalBtn').addEventListener('click',()=>{entries.forEach(e=>e.weight=1);renderWeights();drawWheel();notify('Semua bobot disamakan.')});
+ document.getElementById('sampleBtn').addEventListener('click',()=>{namesEl.value='Fafa\nJarwo\nDina\nBudi\nSalsa\nRaka\nNadia\nAdit';syncEntries();notify('Contoh data dimuat.')});
+ spinBtn.addEventListener('click',spin);
+ syncEntries();
+})();
+</script>
+</body>
+</html>
